@@ -1,4 +1,4 @@
-package com.gzx.netty.client.handler;
+package com.gzx.netty.handler.decoder;
 
 import com.gzx.netty.listpool.ListPool;
 import io.netty.buffer.ByteBuf;
@@ -11,12 +11,12 @@ import io.netty.util.internal.StringUtil;
 import java.util.List;
 
 /**
- * @Author GZX
+ * @Author guozhixuan
  * @Description
- * @Date 2020/5/20 11:26
+ * @Date 2020/6/1 10:03
  * @Version V1.0
  */
-public abstract class AbstractGResponseHandler extends ChannelInboundHandlerAdapter {
+public abstract class AbstractGMessageDecoderHandler extends ChannelInboundHandlerAdapter {
 
 
     // 保存每次累加之后的ByteBuf 直到组成一个完整的消息体
@@ -125,7 +125,7 @@ public abstract class AbstractGResponseHandler extends ChannelInboundHandlerAdap
             throws Exception {
         decodeState = DECODE_STATE.STATE_CALLING_CHILD_DECODE;
         try {
-            decodeGRequest(ctx, in, out);
+            decodeGMessage(ctx, in, out);
         } finally {
             boolean removePending = decodeState == DECODE_STATE.STATE_HANDLER_REMOVED_PENDING;
             decodeState = DECODE_STATE.STATE_INIT;
@@ -136,7 +136,7 @@ public abstract class AbstractGResponseHandler extends ChannelInboundHandlerAdap
         }
     }
 
-    protected abstract void decodeGRequest(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws Exception;
+    protected abstract void decodeGMessage(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws Exception;
 
 
     @Override

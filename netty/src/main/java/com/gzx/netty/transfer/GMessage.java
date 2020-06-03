@@ -1,15 +1,15 @@
-package com.gzx.netty.transfer.response;
+package com.gzx.netty.transfer;
 
 import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.DecoderResultProvider;
 
 /**
- * @Author GZX
+ * @Author guozhixuan
  * @Description
- * @Date 2020/5/26 18:45
+ * @Date 2020/6/1 10:24
  * @Version V1.0
  */
-public class GResponseObject implements DecoderResultProvider {
+public class GMessage implements DecoderResultProvider {
 
 
     private DecoderResult decoderResult;

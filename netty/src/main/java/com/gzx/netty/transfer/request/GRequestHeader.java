@@ -1,6 +1,7 @@
 package com.gzx.netty.transfer.request;
 
 
+import com.gzx.netty.transfer.GMessageLengthAndParamters;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,19 +14,18 @@ import java.util.Map;
  */
 @Getter
 @Setter
-public class GRequestHeader extends GRequestObject  {
+public class GRequestHeader extends GMessageLengthAndParamters {
     public GRequestHeader(String URL, long length) {
+        super(length);
         this.URL = URL;
-        this.length = length;
+    }
+
+    public GRequestHeader(long length, Map<String, String> paramters, String URL) {
+        super(length, paramters);
+        this.URL = URL;
     }
 
     private String URL;
-    private long length;
-    private Map<String,String> paramters;
-
-
-
-
 
 
 }

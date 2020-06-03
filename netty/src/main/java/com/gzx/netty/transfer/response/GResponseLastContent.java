@@ -18,10 +18,10 @@ public class GResponseLastContent extends GResponseContent {
 
 
     public GResponseLastContent(ByteBuf content) {
+        super(content);
         if (content == null) {
             throw new NullPointerException("content");
         }
-        this.content = content;
     }
 
 }

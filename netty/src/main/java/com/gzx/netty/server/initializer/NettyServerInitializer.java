@@ -1,6 +1,7 @@
 package com.gzx.netty.server.initializer;
 
 import com.gzx.netty.server.handler.*;
+import com.gzx.netty.transfer.GMessage;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 
@@ -14,9 +15,9 @@ public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
     @Override
     protected void initChannel(SocketChannel channel) throws Exception {
         channel.pipeline().addLast(new GResponseEncodeHandler());
-        channel.pipeline().addLast(new GResponseAggregatorHandler());
+        channel.pipeline().addLast(new GResponseEncoderAggregatorHandler());
         channel.pipeline().addLast(new GRequestDecoderHandler());
-        channel.pipeline().addLast(new GRequestAggregatorHandler(8192));
-        channel.pipeline().addLast(new GRequestCustomerHandler());
+        channel.pipeline().addLast(new GRequestDecoderAggregatorHandler(GMessage.class, 8192));
+        channel.pipeline().addLast(new GMessageServerHandler());
     }
 }

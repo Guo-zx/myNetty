@@ -1,7 +1,10 @@
-package com.gzx.netty.client.handler;
+package com.gzx.netty.handler.aggregator;
 
+import com.gzx.netty.handler.utils.ClassGenericMatcher;
 import com.gzx.netty.listpool.ListPool;
-import com.gzx.netty.transfer.response.*;
+import com.gzx.netty.transfer.FullGMessage;
+import com.gzx.netty.transfer.GMessageContent;
+import com.gzx.netty.transfer.GMessageLengthAndParamters;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
@@ -21,21 +24,24 @@ import java.util.List;
  * @Date 2020/5/26 18:34
  * @Version V1.0
  */
-public class GResponseAggregatorHandler extends ChannelInboundHandlerAdapter {
+public abstract class GMessageDecoderAggregatorHandler<T extends GMessageLengthAndParamters,I extends GMessageContent,K,R extends FullGMessage> extends ChannelInboundHandlerAdapter {
 
 
     private ListPool listPool = new ListPool(16);
 
     private Class thisAcceptClass;
 
-    private FullGResponse currentMessage;
+    private R currentMessage;
 
     private int maxContentLength;
 
     private int maxCumulationBufferComponents = 1024;
 
-    public GResponseAggregatorHandler(int maxContentLength){
-        this.thisAcceptClass = GResponseObject.class;
+    public GMessageDecoderAggregatorHandler() {
+    }
+
+    public GMessageDecoderAggregatorHandler(Class thisAcceptClass, int maxContentLength){
+        this.thisAcceptClass = thisAcceptClass;
         this.maxContentLength = maxContentLength;
     }
 
@@ -45,7 +51,7 @@ public class GResponseAggregatorHandler extends ChannelInboundHandlerAdapter {
         try {
             if (thisAcceptClass.isInstance(msg)) {
                 try {
-                    decodeGResponse(ctx, msg, out);
+                    decodeGMessage(ctx, msg, out);
                 } finally {
                     ReferenceCountUtil.release(msg);
                 }
@@ -65,16 +71,17 @@ public class GResponseAggregatorHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private void decodeGResponse(ChannelHandlerContext ctx, Object msg, List out) {
 
-        if (msg instanceof GResponseHeader) {
+    private void decodeGMessage(ChannelHandlerContext ctx, Object msg, List out) {
+
+        if (ClassGenericMatcher.isAcceptClass(this, GMessageDecoderAggregatorHandler.class,"T" , msg , ctx)) {
             if (currentMessage != null) {
-                currentMessage.release();
+//                currentMessage.release();
                 currentMessage = null;
                 throw new MessageAggregationException();
             }
 
-            GResponseHeader m = (GResponseHeader) msg;
+            T m = (T) msg;
 
             // 这里就不做100continue的处理了
 
@@ -88,7 +95,7 @@ public class GResponseAggregatorHandler extends ChannelInboundHandlerAdapter {
 
             // 如果发现解析失败了
             if (m instanceof DecoderResultProvider && !((DecoderResultProvider) m).decoderResult().isSuccess()) {
-                FullGResponse aggregated = beginAggregation(m, Unpooled.EMPTY_BUFFER);
+                R aggregated = beginAggregation(m, Unpooled.EMPTY_BUFFER);
                 out.add(aggregated);
                 return;
             }
@@ -99,17 +106,16 @@ public class GResponseAggregatorHandler extends ChannelInboundHandlerAdapter {
             // 这里就不把header的bytebuf加入到CompositeByteBuf中了
 
             currentMessage = beginAggregation(m, content);
-        } else if (msg instanceof GResponseContent) {
+        } else if (ClassGenericMatcher.isAcceptClass(this, GMessageDecoderAggregatorHandler.class,"I" , msg , ctx)) {
             if (currentMessage == null) {
                 return;
             }
 
-            CompositeByteBuf compositeByteBuf = (CompositeByteBuf) currentMessage.getBodyContent();
+            CompositeByteBuf compositeByteBuf = (CompositeByteBuf) currentMessage.getContent();
 
-            GResponseContent m = (GResponseContent) msg;
+            I m = (I) msg;
             // 如果CompositeByteBuf不能存储消息体则抛出异常给下一个handler处理
             if (compositeByteBuf.readableBytes() > maxContentLength - m.getContent().readableBytes()) {
-                FullGResponse fullGResponse = (FullGResponse) currentMessage;
                 ctx.fireExceptionCaught(
                         new RuntimeException("contentLength larger than maxContentLength , contentLength is "+ m.getContent().readableBytes() +" bytes. maxContentLength is " + maxContentLength + " bytes."));
                 ReferenceCountUtil.release(m);
@@ -133,10 +139,10 @@ public class GResponseAggregatorHandler extends ChannelInboundHandlerAdapter {
                     }
                     last = true;
                 } else {
-                    last = m instanceof GResponseLastContent;
+                    last = ClassGenericMatcher.isAcceptClass(this, GMessageDecoderAggregatorHandler.class,"K" , m , ctx);
                 }
             } else {
-                last = m instanceof GResponseLastContent;
+                last = ClassGenericMatcher.isAcceptClass(this, GMessageDecoderAggregatorHandler.class,"K" , m , ctx);
             }
 
             if (last) {
@@ -150,7 +156,6 @@ public class GResponseAggregatorHandler extends ChannelInboundHandlerAdapter {
 
     }
 
-    protected FullGResponse beginAggregation(GResponseHeader start, ByteBuf content) {
-        return new FullGResponse( start, content);
-    }
+
+    protected abstract R beginAggregation(T start, ByteBuf content) ;
 }

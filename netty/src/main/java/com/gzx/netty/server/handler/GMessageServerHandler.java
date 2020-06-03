@@ -7,23 +7,27 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
+import java.util.Map;
+
 /**
  * @Author GZX
  * @Description
  * @Date 2020/5/27 12:10
  * @Version V1.0
  */
-public class GRequestCustomerHandler extends ChannelInboundHandlerAdapter {
+public class GMessageServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof FullGRequest){
             FullGRequest fullGRequest = (FullGRequest) msg;
             System.out.println(fullGRequest.getGRequestHeader().getURL());
-            ByteBuf bodyContent = fullGRequest.getBodyContent();
+            ByteBuf bodyContent = fullGRequest.getContent();
             do {
-                System.out.println((char)fullGRequest.getBodyContent().readByte());
+                System.out.println((char)fullGRequest.getContent().readByte());
             }while (bodyContent.isReadable());
+
+            Map<String, String> paramters = fullGRequest.getGRequestHeader().getParamters();
 
             byte[] success = "success".getBytes();
             ByteBuf byteBuf = ctx.alloc().buffer(256);

@@ -1,7 +1,7 @@
-package com.gzx.netty.server.handler;
+package com.gzx.netty.handler.aggregator;
 
 import com.gzx.netty.listpool.ListPool;
-import com.gzx.netty.transfer.response.FullGResponse;
+import com.gzx.netty.transfer.request.FullGRequest;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
@@ -16,7 +16,7 @@ import java.util.Optional;
  * @Date 2020/5/26 18:34
  * @Version V1.0
  */
-public class GResponseAggregatorHandler extends ChannelOutboundHandlerAdapter {
+public abstract class GMessageEncoderAggregatorHandler<T> extends ChannelOutboundHandlerAdapter {
 
 
     private ListPool listPool = new ListPool(16);
@@ -24,8 +24,8 @@ public class GResponseAggregatorHandler extends ChannelOutboundHandlerAdapter {
     private Class thisAcceptClass;
 
 
-    public GResponseAggregatorHandler() {
-        this.thisAcceptClass = FullGResponse.class;
+    public GMessageEncoderAggregatorHandler(Class acceptClass) {
+        this.thisAcceptClass = acceptClass;
     }
 
     @Override
@@ -33,9 +33,8 @@ public class GResponseAggregatorHandler extends ChannelOutboundHandlerAdapter {
         List out = listPool.getListFormPool();
         try {
             if (thisAcceptClass.isInstance(msg)) {
-                FullGResponse fullGResponse = (FullGResponse) msg;
-                Optional.ofNullable(fullGResponse.getGResponseHeader()).ifPresent(out::add);
-                Optional.ofNullable(fullGResponse.getBodyContent()).ifPresent(out::add);
+                T fullGRequest = (T) msg;
+                encoderFullGMessage(fullGRequest , out);
             } else {
                 out.add(msg);
             }
@@ -51,5 +50,7 @@ public class GResponseAggregatorHandler extends ChannelOutboundHandlerAdapter {
             listPool.cacheList2Pool(out);
         }
     }
+
+    protected abstract void encoderFullGMessage(T t,List out);
 
 }

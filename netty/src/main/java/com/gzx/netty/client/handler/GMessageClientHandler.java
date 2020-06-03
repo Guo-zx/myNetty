@@ -15,15 +15,15 @@ import java.util.HashMap;
  * @Date 2020/5/20 11:39
  * @Version V1.0
  */
-public class NettyClientHandler extends ChannelInboundHandlerAdapter {
+public class GMessageClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (msg instanceof FullGResponse){
             FullGResponse fullGResponse = (FullGResponse) msg;
             System.out.println(fullGResponse.getGResponseHeader().getStatusCode());
-            ByteBuf bodyContent = fullGResponse.getBodyContent();
+            ByteBuf bodyContent = fullGResponse.getContent();
             do {
-                System.out.println((char)fullGResponse.getBodyContent().readByte());
+                System.out.println((char)fullGResponse.getContent().readByte());
             }while (bodyContent.isReadable());
             ((FullGResponse) msg).release();
         }
@@ -40,7 +40,8 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
         GRequestHeader gRequestHeader = new GRequestHeader("/aaaa", success.length);
 
-        FullGRequest fullGRequest= new FullGRequest(gRequestHeader , byteBuf);
+        FullGRequest fullGRequest = new FullGRequest(gRequestHeader , byteBuf);
+
         HashMap map = new HashMap<String , String>();
         gRequestHeader.setParamters(map);
         map.put("123" , "456");

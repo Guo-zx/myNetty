@@ -1,7 +1,9 @@
 package com.gzx.netty.transfer.response;
 
 
+import com.gzx.netty.transfer.GMessageLengthAndParamters;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Map;
@@ -13,19 +15,14 @@ import java.util.Map;
  */
 @Getter
 @Setter
-public class GResponseHeader extends GResponseObject {
+@NoArgsConstructor
+public class GResponseHeader extends GMessageLengthAndParamters {
     public GResponseHeader(long statusCode, long length) {
+        super(length);
         this.statusCode = statusCode;
-        this.length = length;
     }
 
     private long statusCode;
-    private long length;
-    private Map<String,String> paramters;
-
-
-
-
 
 
 }

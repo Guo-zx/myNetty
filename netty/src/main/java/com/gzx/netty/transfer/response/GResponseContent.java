@@ -1,5 +1,7 @@
 package com.gzx.netty.transfer.response;
 
+import com.gzx.netty.transfer.GMessage;
+import com.gzx.netty.transfer.GMessageContent;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCounted;
 import lombok.Getter;
@@ -14,52 +16,12 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@NoArgsConstructor
-public class GResponseContent extends GResponseObject implements ReferenceCounted {
+public class GResponseContent extends GMessageContent  {
 
-    ByteBuf content;
-
+    public GResponseContent() {
+    }
 
     public GResponseContent(ByteBuf content) {
-        if (content == null) {
-            throw new NullPointerException("content");
-        }
-        this.content = content;
+        super(content);
     }
-
-    @Override
-    public int refCnt() {
-        return 1;
-    }
-
-    @Override
-    public ReferenceCounted retain() {
-        return content.retain();
-    }
-
-    @Override
-    public ReferenceCounted retain(int increment) {
-        return content.retain(increment);
-    }
-
-    @Override
-    public ReferenceCounted touch() {
-        return this;
-    }
-
-    @Override
-    public ReferenceCounted touch(Object hint) {
-        return this;
-    }
-
-    @Override
-    public boolean release() {
-        return content.release();
-    }
-
-    @Override
-    public boolean release(int decrement) {
-        return content.release(decrement);
-    }
-
 }

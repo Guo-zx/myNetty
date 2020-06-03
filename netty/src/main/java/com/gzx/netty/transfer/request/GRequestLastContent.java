@@ -18,10 +18,10 @@ public class GRequestLastContent extends GRequestContent{
 
 
     public GRequestLastContent(ByteBuf content) {
+        super(content);
         if (content == null) {
             throw new NullPointerException("content");
         }
-        this.content = content;
     }
 
 }
